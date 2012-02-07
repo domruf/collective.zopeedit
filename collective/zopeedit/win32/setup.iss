@@ -50,7 +50,7 @@ Source: ..\..\..\docs\VERSION.txt; DestDir: {app}\docs; Flags: ignoreversion
 Source: ..\locales\en\LC_MESSAGES\*; DestDir: {app}\locales\en\LC_MESSAGES\; Flags: ignoreversion
 Source: ..\locales\fr\LC_MESSAGES\*; DestDir: {app}\locales\fr\LC_MESSAGES\; Flags: ignoreversion
 Source: ..\locales\es\LC_MESSAGES\*; DestDir: {app}\locales\es\LC_MESSAGES\; Flags: ignoreversion
-
+Source: ..\locales\de\LC_MESSAGES\*; DestDir: {app}\locales\de\LC_MESSAGES\; Flags: ignoreversion
 Source: ..\..\..\dist\*; DestDir: {app}; Flags: restartreplace
 ;Source: ..\Plugins\*; DestDir: {app}\Plugins; Flags: ignoreversion
 Source: vcredist_x86.exe; DestDir: {tmp}; Permissions: everyone-full; Flags: ignoreversion overwritereadonly;
