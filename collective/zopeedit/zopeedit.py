@@ -1668,13 +1668,13 @@ if win32:
     from win32event import WaitForSingleObject
     from win32con import MB_OK, MB_OKCANCEL, MB_YESNO, MB_RETRYCANCEL, \
                          MB_SYSTEMMODAL, MB_ICONERROR, MB_ICONQUESTION, \
-                         MB_ICONEXCLAMATION
+                         MB_ICONEXCLAMATION, MB_ICONASTERISK
 
     def errorDialog(message):
         MessageBox(message, title, MB_OK + MB_ICONERROR + MB_SYSTEMMODAL)
 
     def messageDialog(message):
-        MessageBox(message, title, MB_OK + MB_ICONEXCLAMATION + MB_SYSTEMMODAL)
+        MessageBox(message, title, MB_OK + MB_ICONASTERISK + MB_SYSTEMMODAL)
 
     def askRetryCancel(message):
         return MessageBox(message, title,
