@@ -52,8 +52,8 @@ Source: ..\locales\fr\LC_MESSAGES\*; DestDir: {app}\locales\fr\LC_MESSAGES\; Fla
 Source: ..\locales\es\LC_MESSAGES\*; DestDir: {app}\locales\es\LC_MESSAGES\; Flags: ignoreversion
 
 Source: ..\..\..\dist\*; DestDir: {app}; Flags: restartreplace
-; Source: ..\Plugins\*; DestDir: {app}\Plugins; Flags: ignoreversion
-Source: vcredist_x86.exe; DestDir: {tmp}
+;Source: ..\Plugins\*; DestDir: {app}\Plugins; Flags: ignoreversion
+Source: vcredist_x86.exe; DestDir: {tmp}; Permissions: everyone-full; Flags: ignoreversion overwritereadonly;
 
 [_ISToolPreCompile]
 Name: buildexe.bat; Parameters: ; Flags: abortonerror
@@ -61,22 +61,8 @@ Name: buildexe.bat; Parameters: ; Flags: abortonerror
 [Icons]
 Name: "{group}\ZopeEdit "; Filename: {app}\zopeedit.exe
 
-[Code]
+[PreCompile]
+Name: buildexe.bat; Parameters: ; Flags: abortonerror
 
-procedure DoPreInstall();
-var
-  ResultCode: Integer;
-
-begin
-Log('Inside DoPreInstall');
-ExtractTemporaryFile('vcredist_x86.exe');
-Exec(ExpandConstant('{tmp}\vcredist_x86.exe'), '', '', SW_SHOW, ewWaitUntilTerminated, ResultCode);
-end;
-
-procedure CurStepChanged(CurStep: TSetupStep);
-begin
-  if CurStep = ssInstall then
-  begin
-    DoPreInstall();
-  end;
-end;
+[Run]
+Filename: "{tmp}\vcredist_x86.exe"; Parameters: "/q:a /c:""msiexec /i vcredist.msi /qb!"""; WorkingDir: "{tmp}"; Flags: waituntilterminated; StatusMsg: "Installing Microsoft Visual C++ 2008 Redistributable"
