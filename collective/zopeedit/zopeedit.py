@@ -832,11 +832,11 @@ class ExternalEditor:
         if file_monitor_exit_state == "closed modified" or \
                         file_monitor_exit_state == "manual close modified":
             msg = _("%(title)s\n\n"
-                    "File : %(content_file)s\n\n"
+                    #"File : %(content_file)s\n\n"
                     "Saved at : %(time)s\n\n"
                     "Edition completed") % {
                             'title': self.title,
-                            'content_file': self.content_file,
+                            #'content_file': self.content_file,
                             'time': time.ctime(self.last_saved_mtime )}
             messageDialog(msg)
         elif file_monitor_exit_state == "closed not modified" or \

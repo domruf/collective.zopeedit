@@ -4,6 +4,7 @@ Changelog
 (Unreleased) - 1.1.0
 --------------------
 
+    - Simplified info message after user closes editor (lgraf)
     - Added German translations (lgraf)
     - Fixed icon for win32 message dialogs (info instead of warning) (lgraf)
     - fixed file closing detection under MacOSX (thomasdesvenain)
