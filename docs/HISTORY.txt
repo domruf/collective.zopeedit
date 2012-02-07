@@ -3,6 +3,8 @@ Changelog
 
 (Unreleased) - 1.1.0
 --------------------
+
+    - Added German translations (lgraf)
     - Fixed icon for win32 message dialogs (info instead of warning) (lgraf)
     - fixed file closing detection under MacOSX (thomasdesvenain)
     - zopeedit client works if fuser is located in /usr/bin folder.
