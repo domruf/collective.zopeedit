@@ -1670,7 +1670,7 @@ class EditorProcess:
 ## Platform specific declarations ##
 
 if win32:
-    import Plugins # Assert dependancy
+    #import Plugins # Assert dependancy
     from win32ui import MessageBox
     from win32process import CreateProcess, GetExitCodeProcess, STARTUPINFO
     from win32event import WaitForSingleObject
