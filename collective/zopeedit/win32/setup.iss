@@ -18,6 +18,7 @@ OutputBaseFilename=zopeedit-win32-1.0.0
 VersionInfoCompany=atReal
 AppID={{6A79A43D-B97B-4DA3-BD8D-2C4E84500D72}
 PrivilegesRequired=admin
+VersionInfoVersion=1.0.0.0
 
 [Registry]
 ; Register file type for use by helper app
