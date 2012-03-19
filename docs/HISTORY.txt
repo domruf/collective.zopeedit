@@ -3,7 +3,7 @@ Changelog
 
 (Unreleased) - 1.1.0
 --------------------
-
+    - Added content type mappings for XML based MS Office formats (lgraf)
     - Simplified info message after user closes editor (lgraf)
     - Added German translations (lgraf)
     - Fixed icon for win32 message dialogs (info instead of warning) (lgraf)
