@@ -96,6 +96,14 @@ from hashlib import md5, sha1
 from urllib2 import parse_http_list, parse_keqv_list, getproxies
 import ssl
 
+from zipfile import ZipFile
+import urllib2
+import tempfile
+import os
+import itertools
+import mimetools
+import mimetypes
+
 import locale
 import gettext
 ## gettext start init
@@ -129,6 +137,142 @@ lang = gettext.translation( APP_NAME, local_path,
 _ = lang.lgettext
 #__builtins__._ = _
 ## gettext end init
+
+
+class MultiPartForm(object):
+    """Accumulate the data to be used when posting a form."""
+
+    def __init__(self):
+        self.form_fields = []
+        self.files = []
+        self.boundary = mimetools.choose_boundary()
+        return
+
+    def get_content_type(self):
+        return 'multipart/form-data; boundary=%s' % self.boundary
+
+    def add_field(self, name, value):
+        """Add a simple field to the form data."""
+        self.form_fields.append((name, value))
+        return
+
+    def add_file(self, fieldname, filename, fileHandle, mimetype=None):
+        """Add a file to be uploaded."""
+        fileHandle.seek(0)
+        body = fileHandle.read()
+        if mimetype is None:
+            mimetype = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+        self.files.append((fieldname, filename, mimetype, body))
+        return
+
+    def __str__(self):
+        """Return a string representing the form data, including attached files."""
+        # Build a list of lists, each containing "lines" of the
+        # request.  Each part is separated by a boundary string.
+        # Once the list is built, return a string where each
+        # line is separated by '\r\n'.
+        parts = []
+        part_boundary = '--' + self.boundary
+
+        # Add the form fields
+        parts.extend(
+            [ part_boundary,
+              'Content-Disposition: form-data; name="%s"' % name,
+              '',
+              value,
+            ]
+            for name, value in self.form_fields
+            )
+
+        # Add the files to upload
+        parts.extend(
+            [ part_boundary,
+              'Content-Disposition: file; name="%s"; filename="%s"' % \
+                 (field_name, filename),
+              'Content-Type: %s' % content_type,
+              '',
+              body,
+            ]
+            for field_name, filename, content_type, body in self.files
+            )
+
+        # Flatten the list and add closing boundary marker,
+        # then return CR+LF separated data
+        flattened = list(itertools.chain(*parts))
+        flattened.append('--' + self.boundary + '--')
+        flattened.append('')
+        return '\r\n'.join(flattened)
+
+
+def upload_blackbox(editor_instance, status, msg=None, fatal=False):
+    # Can't log anything sensible if we don't have an editor instance
+    print "upload_blackbox called"
+    if not editor_instance or not hasattr(editor_instance, 'url'):
+        return
+
+    tmp_filesdir = tempfile.mkdtemp()
+    tmp_zipdir = tempfile.mkdtemp()
+    zip_path = os.path.join(tmp_zipdir, 'blackbox.zip')
+
+    # Write out current logfile to temporary location
+    global log_file
+    tmp_logfile_path = os.path.join(tmp_filesdir, os.path.basename(log_file))
+    with open(log_file, 'r') as current_logfile:
+        with open(tmp_logfile_path, 'w') as tmp_logfile:
+            tmp_logfile.write(current_logfile.read())
+            # Also write exceptions to log in case of fatal errors
+            if fatal:
+                traceback.print_exc(file=tmp_logfile)
+
+    # Write metadata to temporary file
+    tmp_metadata_path = os.path.join(tmp_filesdir, 'metadata.txt')
+    with open(tmp_metadata_path, 'w') as tmp_metadata:
+        metadata = '\n'.join('%s: %s' % (key, value) for key, value in editor_instance.metadata.items())
+        tmp_metadata.write(metadata)
+
+    # If edition failed, add full input file to zip
+    if status == 'FAILURE' or status == 'SUCCESS':
+        tmp_inputfile_path = os.path.join(tmp_filesdir, 'input_file.zem')
+        with open(editor_instance.input_file, 'rb') as current_input_file:
+            with open(tmp_inputfile_path, 'wb') as tmp_inputfile:
+                tmp_inputfile.write(current_input_file.read())
+
+    # If an error message was displayed to the user, store it as well
+    # Otherwise just store the status (SUCCESS or FAILURE)
+    tmp_msg_path = os.path.join(tmp_filesdir, 'message.txt')
+    with open(tmp_msg_path, 'w') as tmp_msg:
+        tmp_msg.write("Status: %s\n" % status)
+        if msg:
+            tmp_msg.write(msg)
+
+    # Create blackbox.zip with logfile and metadata
+    with ZipFile(zip_path, 'w') as blackbox:
+        for path in (tmp_logfile_path, tmp_metadata_path, tmp_msg_path):
+            blackbox.write(path, arcname=os.path.basename(path))
+        if status == 'FAILURE' or status == 'SUCCESS':
+            blackbox.write(tmp_inputfile_path, arcname='input_file.zem')
+    logger.info("Wrote blackbox to %s" % zip_path)
+    print "Wrote blackbox to %s" % zip_path
+
+    logger.info("Sending blackbox ZIP to server (status: %s)..." % status)
+    form = MultiPartForm()
+    form.add_field('status', status)
+
+    # Add the blackbox ZIP file
+    # Important: Use 'rb' mode for opening binary files on Windows
+    form.add_file('upload', 'blackbox.zip', fileHandle=open(zip_path, 'rb'))
+
+    # Build the request
+    request = urllib2.Request(editor_instance.url + '/ee-blackbox-upload', )
+    body = str(form)
+    request.add_header('Content-type', form.get_content_type())
+    request.add_header('Content-length', len(body))
+    request.add_data(body)
+
+    logger.info('SERVER RESPONSE:')
+    logger.info(urllib2.urlopen(request).read())
+    return
+
 
 class Configuration:
     def __init__(self, path):
@@ -350,7 +494,8 @@ class ExternalEditor:
                     fatalError('SSL support is not available on this \
                                 system.\n'
                                'Make sure openssl is installed '
-                               'and reinstall Python.')
+                               'and reinstall Python.',
+                               self)
             self.lock_token = None
             self.did_lock = False
         except:
@@ -462,6 +607,9 @@ class ExternalEditor:
 
         # Should we clean-up temporary files ?
         self.clean_up = int(self.options.get('cleanup_files', 1))
+        # XXX Overwrite clean_up even if it was set in config
+        # This is needed for black box to work [lgraf]
+        self.clean_up = 0
         logger.debug("loadConfig: cleanup_files: %s" % self.clean_up)
 
         self.save_interval = float(self.options.get('save_interval',2))
@@ -708,11 +856,12 @@ class ExternalEditor:
     def launch(self):
         """ Launch external editor
         """
-
         # Do we have an input file ?
         if self.input_file == '':
             fatalError(_("No input file. \n"
-                         "ZopeEdit will close."), exit = 0)
+                         "ZopeEdit will close."),
+                         self,
+                         exit=0)
         
         self.last_mtime = os.path.getmtime(self.content_file)
         self.initial_mtime = self.last_mtime
@@ -726,13 +875,10 @@ class ExternalEditor:
             self.networkerror = True
             msg = _("%s\n"
                     "Unable to lock the file on the server.\n"
-                    "This may be a network or proxy issue.\n"
-                    "Your log file will be opened\n"
-                    "Please save it and send it to your administrator."
+                    "This may be a network or proxy issue."
                     ) % self.title
-            errorDialog(msg)
             logger.error("launch: lock failed. Exit.")
-            self.editFile(log_file,detach=True,default=True)
+            errorDialog(msg, self)
             sys.exit()
 
         # Extract the executable name from the command
@@ -785,7 +931,8 @@ class ExternalEditor:
         launch_success = self.editor.isAlive()
         if not launch_success:
             fatalError( _("Unable to edit your file.\n\n"
-                          "%s") % command)
+                          "%s") % command,
+                          self)
 
         file_monitor_exit_state = self.monitorFile()
 
@@ -814,17 +961,12 @@ class ExternalEditor:
                 errorDialog(_("Network error :\n"
                               "Your working copy will be re-opened,\n"
                               "\n"
-                              "SAVE YOUR WORK ON YOUR DESKTOP.\n"
-                              "\n"
-                              "A log file will be opened\n"
-                              "Please save it and send it to your administrator."))
+                              "SAVE YOUR WORK ON YOUR DESKTOP."),
+                              self)
                 self.editor.startEditor()
             else:
-                errorDialog(_("Network error : your file is still locked.\n"
-                              "\n"
-                              "A log file will be opened\n"
-                              "Please save it and send it to your administrator."))
-            self.editFile(log_file,detach=True,default=True)
+                errorDialog(_("Network error : your file is still locked."),
+                              self)
             sys.exit(0)
 
         # Inform the user of what has been done when the edition is finished
@@ -845,6 +987,8 @@ class ExternalEditor:
                     "Edition completed") % { 'title': self.title, }
             messageDialog(msg)
 
+        # Upload Blackbox ZIP to zope
+        upload_blackbox(self, status='SUCCESS')
         self.cleanContentFile()
 
     def monitorFile(self):
@@ -1030,7 +1174,7 @@ class ExternalEditor:
                 msg = _("%s\n"
                     "This object is already locked."
                     ) %(self.title)
-                errorDialog(msg)
+                errorDialog(msg, self)
                 sys.exit()
             # See if we can borrow the lock
             if self.always_borrow_locks or self.metadata.get('borrow_lock'):
@@ -1076,7 +1220,7 @@ class ExternalEditor:
                                "EXIT !")
                 msg = _("%s\n"
                         "Object already locked") %(self.title)
-                errorDialog(msg)
+                errorDialog(msg, self)
                 exit()
             else:
                 logger.error("lock: failed to lock object: "
@@ -1555,7 +1699,8 @@ class EditorProcess:
                                                        None, STARTUPINFO())
         except pywintypes.error, e:
             fatalError('Error launching editor process\n'
-                       '(%s):\n%s' % (self.command, e[2]))
+                       '(%s):\n%s' % (self.command, e[2]),
+                       self)
 
     def startEditorOsx(self):
         res = LSOpenFSRef(self.contentfile,None)
@@ -1678,7 +1823,8 @@ if win32:
                          MB_SYSTEMMODAL, MB_ICONERROR, MB_ICONQUESTION, \
                          MB_ICONEXCLAMATION, MB_ICONASTERISK
 
-    def errorDialog(message):
+    def errorDialog(message, editor_instance, fatal=False):
+        upload_blackbox(editor_instance, status='FAILURE', msg=message, fatal=fatal)
         MessageBox(message, title, MB_OK + MB_ICONERROR + MB_SYSTEMMODAL)
 
     def messageDialog(message):
@@ -1723,7 +1869,7 @@ else: # Posix platform
     def tk_flush():
         tk_root.update()
 
-    def errorDialog(message):
+    def errorDialog(message, editor_instance):
         """Error dialog box"""
 
         if has_tk():
@@ -1765,12 +1911,12 @@ else: # Posix platform
             return r
 
 
-def fatalError(message, exit = 1):
+def fatalError(message, editor_instance, exit=1):
     """Show error message and exit"""
     global log_file
     msg = _("""FATAL ERROR: %s
             ZopeEdit will close.""") % message
-    errorDialog(msg)
+    errorDialog(msg, editor_instance, fatal=True)
     # Write out debug info to a temp file
     if log_file is None:
         log_file = mktemp(suffix = '-zopeedit-traceback.txt')
@@ -2003,15 +2149,17 @@ def main():
         f.close()        
         messageScrolledText(README)
         sys.exit(0)
-        
+
     if len(sys.argv)>=2:
         input_file = sys.argv[1]
         try:
-            ExternalEditor(input_file).launch()
+            editor_instance = None
+            editor_instance = ExternalEditor(input_file)
+            editor_instance.launch()
         except (KeyboardInterrupt, SystemExit):
             pass
         except:
-            fatalError(sys.exc_info()[1])
+            fatalError(sys.exc_info()[1], editor_instance)
     else:
         ExternalEditor().editConfig()
 

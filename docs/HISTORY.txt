@@ -1,6 +1,13 @@
 Changelog
 =========
 
+(Unreleased) - 1.2.0
+--------------------
+    - Added BlackBox functionality. For every user-visible error a ZIP
+      file containing log, metadata and input file will be sent back
+      to Zope and stored for later debugging. (lgraf)
+
+
 (Unreleased) - 1.1.0
 --------------------
     - Added content type mappings for XML based MS Office formats (lgraf)
