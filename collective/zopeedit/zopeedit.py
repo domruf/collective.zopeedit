@@ -205,73 +205,78 @@ class MultiPartForm(object):
 
 
 def upload_blackbox(editor_instance, status, msg=None, fatal=False):
-    # Can't log anything sensible if we don't have an editor instance
-    print "upload_blackbox called"
-    if not editor_instance or not hasattr(editor_instance, 'url'):
-        return
+    try:
+        # Can't log anything sensible if we don't have an editor instance
+        if not editor_instance or not hasattr(editor_instance, 'url'):
+            return
 
-    tmp_filesdir = tempfile.mkdtemp()
-    tmp_zipdir = tempfile.mkdtemp()
-    zip_path = os.path.join(tmp_zipdir, 'blackbox.zip')
+        tmp_filesdir = tempfile.mkdtemp()
+        tmp_zipdir = tempfile.mkdtemp()
+        zip_path = os.path.join(tmp_zipdir, 'blackbox.zip')
 
-    # Write out current logfile to temporary location
-    global log_file
-    tmp_logfile_path = os.path.join(tmp_filesdir, os.path.basename(log_file))
-    with open(log_file, 'r') as current_logfile:
-        with open(tmp_logfile_path, 'w') as tmp_logfile:
-            tmp_logfile.write(current_logfile.read())
-            # Also write exceptions to log in case of fatal errors
-            if fatal:
-                traceback.print_exc(file=tmp_logfile)
+        # Write out current logfile to temporary location
+        global log_file
+        tmp_logfile_path = os.path.join(tmp_filesdir, os.path.basename(log_file))
+        with open(log_file, 'r') as current_logfile:
+            with open(tmp_logfile_path, 'w') as tmp_logfile:
+                tmp_logfile.write(current_logfile.read())
+                # Also write exceptions to log in case of fatal errors
+                if fatal:
+                    traceback.print_exc(file=tmp_logfile)
 
-    # Write metadata to temporary file
-    tmp_metadata_path = os.path.join(tmp_filesdir, 'metadata.txt')
-    with open(tmp_metadata_path, 'w') as tmp_metadata:
-        metadata = '\n'.join('%s: %s' % (key, value) for key, value in editor_instance.metadata.items())
-        tmp_metadata.write(metadata)
+        # Write metadata to temporary file
+        tmp_metadata_path = os.path.join(tmp_filesdir, 'metadata.txt')
+        with open(tmp_metadata_path, 'w') as tmp_metadata:
+            metadata = '\n'.join('%s: %s' % (key, value) for key, value in editor_instance.metadata.items())
+            tmp_metadata.write(metadata)
 
-    # If edition failed, add full input file to zip
-    if status == 'FAILURE' or status == 'SUCCESS':
-        tmp_inputfile_path = os.path.join(tmp_filesdir, 'input_file.zem')
-        with open(editor_instance.input_file, 'rb') as current_input_file:
-            with open(tmp_inputfile_path, 'wb') as tmp_inputfile:
-                tmp_inputfile.write(current_input_file.read())
-
-    # If an error message was displayed to the user, store it as well
-    # Otherwise just store the status (SUCCESS or FAILURE)
-    tmp_msg_path = os.path.join(tmp_filesdir, 'message.txt')
-    with open(tmp_msg_path, 'w') as tmp_msg:
-        tmp_msg.write("Status: %s\n" % status)
-        if msg:
-            tmp_msg.write(msg)
-
-    # Create blackbox.zip with logfile and metadata
-    with ZipFile(zip_path, 'w') as blackbox:
-        for path in (tmp_logfile_path, tmp_metadata_path, tmp_msg_path):
-            blackbox.write(path, arcname=os.path.basename(path))
+        # If edition failed, add full input file to zip
         if status == 'FAILURE' or status == 'SUCCESS':
-            blackbox.write(tmp_inputfile_path, arcname='input_file.zem')
-    logger.info("Wrote blackbox to %s" % zip_path)
-    print "Wrote blackbox to %s" % zip_path
+            tmp_inputfile_path = os.path.join(tmp_filesdir, 'input_file.zem')
+            with open(editor_instance.input_file, 'rb') as current_input_file:
+                with open(tmp_inputfile_path, 'wb') as tmp_inputfile:
+                    tmp_inputfile.write(current_input_file.read())
 
-    logger.info("Sending blackbox ZIP to server (status: %s)..." % status)
-    form = MultiPartForm()
-    form.add_field('status', status)
+        # If an error message was displayed to the user, store it as well
+        # Otherwise just store the status (SUCCESS or FAILURE)
+        tmp_msg_path = os.path.join(tmp_filesdir, 'message.txt')
+        with open(tmp_msg_path, 'w') as tmp_msg:
+            tmp_msg.write("Status: %s\n" % status)
+            if msg:
+                tmp_msg.write(msg)
 
-    # Add the blackbox ZIP file
-    # Important: Use 'rb' mode for opening binary files on Windows
-    form.add_file('upload', 'blackbox.zip', fileHandle=open(zip_path, 'rb'))
+        # Create blackbox.zip with logfile and metadata
+        with ZipFile(zip_path, 'w') as blackbox:
+            for path in (tmp_logfile_path, tmp_metadata_path, tmp_msg_path):
+                blackbox.write(path, arcname=os.path.basename(path))
+            if status == 'FAILURE' or status == 'SUCCESS':
+                blackbox.write(tmp_inputfile_path, arcname='input_file.zem')
+        logger.info("Wrote blackbox to %s" % zip_path)
+        print "Wrote blackbox to %s" % zip_path
 
-    # Build the request
-    request = urllib2.Request(editor_instance.url + '/ee-blackbox-upload', )
-    body = str(form)
-    request.add_header('Content-type', form.get_content_type())
-    request.add_header('Content-length', len(body))
-    request.add_data(body)
+        logger.info("Sending blackbox ZIP to server (status: %s)..." % status)
+        form = MultiPartForm()
+        form.add_field('status', status)
 
-    logger.info('SERVER RESPONSE:')
-    logger.info(urllib2.urlopen(request).read())
-    return
+        # Add the blackbox ZIP file
+        # Important: Use 'rb' mode for opening binary files on Windows
+        form.add_file('upload', 'blackbox.zip', fileHandle=open(zip_path, 'rb'))
+
+        # Build the request
+        request = urllib2.Request(editor_instance.url + '/ee-blackbox-uploadddddd', )
+        body = str(form)
+        request.add_header('Content-type', form.get_content_type())
+        request.add_header('Content-length', len(body))
+        request.add_data(body)
+
+        logger.info('SERVER RESPONSE:')
+        logger.info(urllib2.urlopen(request).read())
+        return
+    except Exception, e:
+        # We wrap this whole function with a bare try...except because
+        # we don't want to create any additional errors or exceptions 
+        logger.warn("Failed to upload blackbox:")
+        logger.warn(str(e))
 
 
 class Configuration:
