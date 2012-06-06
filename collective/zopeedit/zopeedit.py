@@ -1973,7 +1973,7 @@ default_configuration += """
 # Temporary file cleanup. Set to false for debugging or
 # to waste disk space. Note: setting this to false is a
 # security risk to the zope server
-#cleanup_files = 1
+cleanup_files = 0
 #keep_log = 1
 
 # Use WebDAV locking to prevent concurrent editing by
@@ -2023,7 +2023,7 @@ default_configuration += """
 
 # log level : default is 'info'.
 # It can be set to debug, info, warning, error or critical.
-#log_level = debug
+log_level = debug
 
 # If your server is not using utf-8
 #server_charset = utf-8
