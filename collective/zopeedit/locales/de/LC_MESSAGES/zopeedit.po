@@ -196,8 +196,8 @@ msgid ""
 "Do you want to borrow this lock and continue ?"
 msgstr ""
 "%s\n"
-"Dieses Objekt wurde von Ihnen bereits in einer anderen Sitzung gesperrt.\n"
-"Möchten Sie diese Sperre wiederverwenden und weiterfahren?"
+"Achtung: Sie haben diese Datei bereits geöffnet - erneutes Öffnen kann zu Datenverlust führen.\n"
+"Wollen Sie die Datei trotzdem öffnen?"
 
 #: /home/tbenita/temp/collective/collective.zopeedit/collective/zopeedit/zopeedit.py:951
 #, python-format
