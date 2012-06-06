@@ -309,7 +309,9 @@ class ExternalEditor:
                 content_file = '-' + urllib.unquote(
                                self.path.split('/')[-1]).replace(' ','_')
 
-            extension = self.options.get('extension')
+            # Try to figure out correct extension for our document
+            extension = self.figure_out_extension()
+
             if extension and not content_file.endswith(extension):
                 content_file = content_file + extension
             if self.options.has_key('temp_dir'):
@@ -369,6 +371,39 @@ class ExternalEditor:
     def __del__(self):
         logger.info("ZopeEdit ends at: %s" % 
                         time.asctime(time.localtime()) )
+
+    def figure_out_extension(self):
+        # First use the extension we got from metadata or ZopeEdit.ini
+        extension = self.options.get('extension')
+
+        # If metadata didn't contain extension, look it up by MIME type
+        content_type = self.metadata.get('content_type')
+        if extension is None and content_type:
+            # Search registry for the extension by MIME type
+            try:
+                from _winreg import HKEY_CLASSES_ROOT, OpenKeyEx, QueryValueEx
+                key = 'MIME\\Database\\Content Type\\%s' % content_type
+                key = OpenKeyEx(HKEY_CLASSES_ROOT, key)
+                extension, nil = QueryValueEx(key, 'Extension')
+                logger.debug('Registry has extension %r for '
+                             'content type %r',
+                             extension, content_type)
+            except EnvironmentError:
+                pass
+
+        # If looking it up by MIME type failed, try extracting from URL
+        if extension is None and self.metadata.has_key('url'):
+            url = self.metadata['url']
+            dot = url.rfind('.')
+
+            if dot != -1 and dot > url.rfind('/'):
+                extension = url[dot:]
+                logger.debug('Extracted extension from url: %r',
+                             extension)
+
+        # Return whatever we got so far
+        return extension
+
 
     def loadConfig(self):
         """ Read the configuration file and set default values """

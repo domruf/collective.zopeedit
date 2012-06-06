@@ -3,6 +3,7 @@ Changelog
 
 (Unreleased) - 1.1.0
 --------------------
+    - Try to figure out and use the correct extension for temporary file (lgraf)
     - Set manage_locks to 0 to prevent users from editing the same document
       twice (lgraf)
     - Using win32/ZopeEdit.ini as template for default configuration,
