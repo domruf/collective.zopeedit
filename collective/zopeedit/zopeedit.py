@@ -1798,94 +1798,11 @@ def messageScrolledText(text):
     else:
         print text
 
-default_configuration = """
-#######################################################################
-#                                                                     #
-#       Zope External Editor helper application configuration         #
-#                                                                     #
-#             maintained by atReal contact@atreal.fr                  #
-#######################################################################
-#                                                                     #
-# Remove '#' to make an option active                                 #
-#                                                                     #
-#######################################################################
+# Use win32/ZopeEdit.ini as template for default configuration
+zopeedit_ini_path = os.path.join(os.path.dirname(__file__), 'win32', 'ZopeEdit.ini')
+with open(zopeedit_ini_path, 'r') as zopeedit_ini:
+    default_configuration = zopeedit_ini.read()
 
-[general]
-# General configuration options
-version = %s
-""" % __version__
-
-default_configuration += """
-# Create a new version when the file is closed ?
-#version_control = 0
-
-# Temporary file cleanup. Set to false for debugging or
-# to waste disk space. Note: setting this to false is a
-# security risk to the zope server
-#cleanup_files = 1
-#keep_log = 1
-
-# Use WebDAV locking to prevent concurrent editing by
-# different users. Disable for single user use or for
-# better performance
-# set use_locks = 0 if you use a proxy that does not allow wabdav LOCKs
-#use_locks = 1
-
-# If you wish to inform the user about locks issues
-# set manage_locks = 1
-# This will allow the user to borrow a lock or edit a locked file
-# without informing the administrator
-#manage_locks = 1
-
-# To suppress warnings about borrowing locks on objects
-# locked by you before you began editing you can
-# set this flag. This is useful for applications that
-# use server-side locking, like CMFStaging
-always_borrow_locks = 0
-
-# Duration of file Lock : 1 day = 86400 seconds
-# If this option is removed, fall back on 'infinite' zope default
-# Default 'infinite' value is about 12 minutes
-#lock_timeout = 86400
-
-# Proxy address
-#proxy = http://www.myproxy.com:8080
-
-# Proxy user and password ( optional )
-#proxy_user = 'username'
-#proxy_pass = 'password'
-
-# Automatic proxy configuration from system
-# does nothing if proxy is configured
-# Default value is "disabled" : 0
-#autoproxy = 1
-
-# Max isAlive counter
-# This is used in order to wait the editor to effectively lock the file
-# This is the number of 'probing' cycles
-# default value is 5 cycles of save_interval
-#max_isalive_counter = 5
-
-# Automatic save interval, in seconds. Set to zero for
-# no auto save (save to Zope only on exit).
-#save_interval = 5
-
-# log level : default is 'info'.
-# It can be set to debug, info, warning, error or critical.
-#log_level = debug
-
-# If your server is not using utf-8
-#server_charset = utf-8
-
-# If your client charset is not iso-8859-1
-# client_charset = iso-8859-1
-
-# Lock File Scheme
-# These are schemes that are used in order to detect "lock" files
-# %s is the edited file's name (add a ';' between each scheme):
-#lock_file_schemes = .~lock.%s#;~%s.lock;.%s.swp
-
-""" 
 
 if linux:
     default_configuration += """

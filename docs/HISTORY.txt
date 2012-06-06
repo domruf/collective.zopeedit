@@ -3,6 +3,8 @@ Changelog
 
 (Unreleased) - 1.1.0
 --------------------
+    - Using win32/ZopeEdit.ini as template for default configuration,
+      not the inline config in zopeedit.py
     - Added content type mappings for XML based MS Office formats (lgraf)
     - Simplified info message after user closes editor (lgraf)
     - Added German translations (lgraf)
