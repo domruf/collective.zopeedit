@@ -1841,7 +1841,7 @@ default_configuration += """
 # locked by you before you began editing you can
 # set this flag. This is useful for applications that
 # use server-side locking, like CMFStaging
-#always_borrow_locks = 0
+always_borrow_locks = 0
 
 # Duration of file Lock : 1 day = 86400 seconds
 # If this option is removed, fall back on 'infinite' zope default
