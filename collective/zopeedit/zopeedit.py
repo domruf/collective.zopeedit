@@ -458,7 +458,9 @@ class ExternalEditor:
                 content_file = '-' + urllib.unquote(
                                self.path.split('/')[-1]).replace(' ','_')
 
-            extension = self.options.get('extension')
+            # Try to figure out correct extension for our document
+            extension = self.figure_out_extension()
+
             if extension and not content_file.endswith(extension):
                 content_file = content_file + extension
             if self.options.has_key('temp_dir'):
@@ -519,6 +521,39 @@ class ExternalEditor:
     def __del__(self):
         logger.info("ZopeEdit ends at: %s" % 
                         time.asctime(time.localtime()) )
+
+    def figure_out_extension(self):
+        # First use the extension we got from metadata or ZopeEdit.ini
+        extension = self.options.get('extension')
+
+        # If metadata didn't contain extension, look it up by MIME type
+        content_type = self.metadata.get('content_type')
+        if extension is None and content_type:
+            # Search registry for the extension by MIME type
+            try:
+                from _winreg import HKEY_CLASSES_ROOT, OpenKeyEx, QueryValueEx
+                key = 'MIME\\Database\\Content Type\\%s' % content_type
+                key = OpenKeyEx(HKEY_CLASSES_ROOT, key)
+                extension, nil = QueryValueEx(key, 'Extension')
+                logger.debug('Registry has extension %r for '
+                             'content type %r',
+                             extension, content_type)
+            except EnvironmentError:
+                pass
+
+        # If looking it up by MIME type failed, try extracting from URL
+        if extension is None and self.metadata.has_key('url'):
+            url = self.metadata['url']
+            dot = url.rfind('.')
+
+            if dot != -1 and dot > url.rfind('/'):
+                extension = url[dot:]
+                logger.debug('Extracted extension from url: %r',
+                             extension)
+
+        # Return whatever we got so far
+        return extension
+
 
     def loadConfig(self):
         """ Read the configuration file and set default values """
@@ -1949,94 +1984,12 @@ def messageScrolledText(text):
     else:
         print text
 
-default_configuration = """
-#######################################################################
-#                                                                     #
-#       Zope External Editor helper application configuration         #
-#                                                                     #
-#             maintained by atReal contact@atreal.fr                  #
-#######################################################################
-#                                                                     #
-# Remove '#' to make an option active                                 #
-#                                                                     #
-#######################################################################
 
-[general]
-# General configuration options
-version = %s
-""" % __version__
+# Use win32/ZopeEdit.ini as template for default configuration
+zopeedit_ini_path = os.path.join(os.path.dirname(__file__), 'win32', 'ZopeEdit.ini')
+with open(zopeedit_ini_path, 'r') as zopeedit_ini:
+    default_configuration = zopeedit_ini.read()
 
-default_configuration += """
-# Create a new version when the file is closed ?
-#version_control = 0
-
-# Temporary file cleanup. Set to false for debugging or
-# to waste disk space. Note: setting this to false is a
-# security risk to the zope server
-cleanup_files = 0
-#keep_log = 1
-
-# Use WebDAV locking to prevent concurrent editing by
-# different users. Disable for single user use or for
-# better performance
-# set use_locks = 0 if you use a proxy that does not allow wabdav LOCKs
-#use_locks = 1
-
-# If you wish to inform the user about locks issues
-# set manage_locks = 1
-# This will allow the user to borrow a lock or edit a locked file
-# without informing the administrator
-#manage_locks = 1
-
-# To suppress warnings about borrowing locks on objects
-# locked by you before you began editing you can
-# set this flag. This is useful for applications that
-# use server-side locking, like CMFStaging
-always_borrow_locks = 0
-
-# Duration of file Lock : 1 day = 86400 seconds
-# If this option is removed, fall back on 'infinite' zope default
-# Default 'infinite' value is about 12 minutes
-#lock_timeout = 86400
-
-# Proxy address
-#proxy = http://www.myproxy.com:8080
-
-# Proxy user and password ( optional )
-#proxy_user = 'username'
-#proxy_pass = 'password'
-
-# Automatic proxy configuration from system
-# does nothing if proxy is configured
-# Default value is "disabled" : 0
-#autoproxy = 1
-
-# Max isAlive counter
-# This is used in order to wait the editor to effectively lock the file
-# This is the number of 'probing' cycles
-# default value is 5 cycles of save_interval
-#max_isalive_counter = 5
-
-# Automatic save interval, in seconds. Set to zero for
-# no auto save (save to Zope only on exit).
-#save_interval = 5
-
-# log level : default is 'info'.
-# It can be set to debug, info, warning, error or critical.
-log_level = debug
-
-# If your server is not using utf-8
-#server_charset = utf-8
-
-# If your client charset is not iso-8859-1
-# client_charset = iso-8859-1
-
-# Lock File Scheme
-# These are schemes that are used in order to detect "lock" files
-# %s is the edited file's name (add a ';' between each scheme):
-#lock_file_schemes = .~lock.%s#;~%s.lock;.%s.swp
-
-""" 
 
 if linux:
     default_configuration += """
