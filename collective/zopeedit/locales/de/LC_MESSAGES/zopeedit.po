@@ -202,7 +202,7 @@ msgid ""
 "This object is already locked."
 msgstr ""
 "%s\n"
-"Dieses Objekt ist bereits gesperrt."
+"Diese Datei ist bereits zur Bearbeitung geöffnet."
 
 #: /home/tbenita/temp/collective/collective.zopeedit/collective/zopeedit/zopeedit.py:915
 #, python-format
