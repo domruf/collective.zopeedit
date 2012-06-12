@@ -373,7 +373,7 @@ class ExternalEditor:
                         time.asctime(time.localtime()) )
 
     def figure_out_extension(self):
-        # First use the extension we got from metadata or ZopeEdit.ini
+        # First use the extension we got from metadata
         extension = self.options.get('extension')
 
         # If metadata didn't contain extension, look it up by MIME type
@@ -1833,8 +1833,8 @@ def messageScrolledText(text):
     else:
         print text
 
-# Use win32/ZopeEdit.ini as template for default configuration
-zopeedit_ini_path = os.path.join(os.path.dirname(__file__), 'win32', 'ZopeEdit.ini')
+# Use ZopeEdit/ZopeEdit.ini as template for default configuration
+zopeedit_ini_path = os.path.join(system_path, 'ZopeEdit.ini')
 with open(zopeedit_ini_path, 'r') as zopeedit_ini:
     default_configuration = zopeedit_ini.read()
 
