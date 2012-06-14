@@ -3,6 +3,7 @@ Changelog
 
 (Unreleased) - 1.3.0
 --------------------
+    - Added mimetype mappings for Visio, MS Project and MindManager files (lgraf)
     - Disabled uploading of black box in case of success (lgraf)
     - Increased lock timeout in ZopeEdit.ini to 48h (lgraf)
     - Customized german translation for "Edition complete" message (lgraf)
