@@ -3,10 +3,10 @@
 [Setup]
 DisableStartupPrompt=true
 AppName=Zope External Editor Helper Application
-AppVerName=Zope External Editor 1.2.1
+AppVerName=Zope External Editor 1.3.0
 AppPublisher=Thierry Benita, atReal contact@atreal.net (original version Casey Duncan, Zope Corporation)
 AppPublisherURL=http://plone.org/products/zope-externaleditor-client
-AppVersion=1.2.1
+AppVersion=1.3.0
 AppSupportURL=http://plone.org/products/zope-externaleditor-client
 AppUpdatesURL=http://plone.org/products/zope-externaleditor-client
 DefaultDirName={pf}\ZopeExternalEditor
@@ -14,11 +14,11 @@ DefaultGroupName=Zope External Editor
 AllowNoIcons=true
 LicenseFile=..\..\..\LICENSE.txt
 ChangesAssociations=true
-OutputBaseFilename=zopeedit-win32-1.2.1
+OutputBaseFilename=zopeedit-win32-1.3.0
 VersionInfoCompany=atReal
 AppID={{6A79A43D-B97B-4DA3-BD8D-2C4E84500D72}
 PrivilegesRequired=admin
-VersionInfoVersion=1.2.1.0
+VersionInfoVersion=1.3.0.0
 
 [Registry]
 ; Register file type for use by helper app
