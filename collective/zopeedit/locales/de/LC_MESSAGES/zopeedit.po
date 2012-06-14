@@ -124,7 +124,7 @@ msgstr ""
 "\n"
 "Gespeichert am: %(time)s\n"
 "\n"
-"Bearbeitung abgeschlossen"
+"Bearbeitung abgeschlossen.\nDas Dokument kann jetzt eingecheckt werden."
 
 #: /home/tbenita/temp/collective/collective.zopeedit/collective/zopeedit/zopeedit.py:745
 #, python-format
@@ -135,7 +135,7 @@ msgid ""
 msgstr ""
 "%(title)s\n"
 "\n"
-"Bearbeitung abgeschlossen"
+"Bearbeitung abgeschlossen.\n(Keine Änderungen)"
 
 #: /home/tbenita/temp/collective/collective.zopeedit/collective/zopeedit/zopeedit.py:808
 #, python-format

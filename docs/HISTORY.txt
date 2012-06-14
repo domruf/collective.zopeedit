@@ -1,6 +1,11 @@
 Changelog
 =========
 
+(Unreleased) - 1.3.0
+--------------------
+    - Customized german translation for "Edition complete" message (lgraf)
+
+
 (Unreleased) - 1.2.0
 --------------------
     - Added BlackBox functionality. For every user-visible error a ZIP
