@@ -1984,6 +1984,10 @@ def messageScrolledText(text):
 
 # Use ZopeEdit/ZopeEdit.ini as template for default configuration
 zopeedit_ini_path = os.path.join(system_path, 'ZopeEdit.ini')
+if not os.path.isfile(zopeedit_ini_path):
+    # Fallback if running from source
+    zopeedit_ini_path = os.path.join(system_path, 'win32', 'ZopeEdit.ini')
+
 with open(zopeedit_ini_path, 'r') as zopeedit_ini:
     default_configuration = zopeedit_ini.read()
 
