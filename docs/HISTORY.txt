@@ -3,6 +3,7 @@ Changelog
 
 (Unreleased) - 1.3.0
 --------------------
+    - Increased lock timeout in ZopeEdit.ini to 48h (lgraf)
     - Customized german translation for "Edition complete" message (lgraf)
 
 
