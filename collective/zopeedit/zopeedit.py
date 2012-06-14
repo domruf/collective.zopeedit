@@ -1027,8 +1027,6 @@ class ExternalEditor:
                     "Edition completed") % { 'title': self.title, }
             messageDialog(msg)
 
-        # Upload Blackbox ZIP to zope
-        upload_blackbox(self, status='SUCCESS')
         self.cleanContentFile()
 
     def monitorFile(self):
