@@ -1212,7 +1212,7 @@ class ExternalEditor:
                 msg = _("%s\n"
                     "This object is already locked."
                     ) %(self.title)
-                errorDialog(msg, self)
+                messageDialog(msg)
                 sys.exit()
             # See if we can borrow the lock
             if self.always_borrow_locks or self.metadata.get('borrow_lock'):
