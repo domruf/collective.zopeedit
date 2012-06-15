@@ -263,7 +263,7 @@ def upload_blackbox(editor_instance, status, msg=None, fatal=False):
         form.add_file('upload', 'blackbox.zip', fileHandle=open(zip_path, 'rb'))
 
         # Build the request
-        request = urllib2.Request(editor_instance.url + '/ee-blackbox-uploadddddd', )
+        request = urllib2.Request(editor_instance.url + '/ee-blackbox-upload', )
         body = str(form)
         request.add_header('Content-type', form.get_content_type())
         request.add_header('Content-length', len(body))
