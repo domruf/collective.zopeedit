@@ -29,11 +29,12 @@ p.author="Thierry Benita - atReal"
 p.mail="contact@atreal.net"
 p.description="""ZopeEdit is a Zope ExternalEditor client."""
 p.url = "http://svn.plone.org/svn/collective/collective.zopeedit/"
-p.depends="bash, psmisc, python2.6, python-tk"
+p.depends="bash, psmisc, python, python-tk"
 p.license="gpl"
 p.section="utils"
 p.arch="all"
 p.preremove="collective/zopeedit/posix/preremove.sh"
+p.postinstall="collective/zopeedit/posix/postinstall.sh"
 
 p["/usr/share/app-install/desktop"]=["collective/zopeedit/posix/zopeedit.desktop|zopeedit.desktop"]
 p["/usr/share/applications"]=["collective/zopeedit/posix/zopeedit.desktop|zopeedit.desktop"]
@@ -46,7 +47,7 @@ p["/usr/lib/python2.6/dist-packages"]=["collective/zopeedit/posix/collective.zop
 p["/usr/lib/python2.6/dist-packages/collective.zopeedit/collective"]=["collective/__init__.py|__init__.py"]
 
 p["/usr/lib/python2.6/dist-packages/collective.zopeedit/collective/zopeedit"]=["collective/zopeedit/zopeedit.py|zopeedit.py",
-            "collective/zopeedit/__init__.py|__init__.py",]
+            "collective/zopeedit/__init__.py|__init__.py", "collective/zopeedit/win32/ZopeEdit.ini|ZopeEdit.ini"]
 
 p["/usr/lib/python2.6/dist-packages/collective.zopeedit/collective/zopeedit/locales"]=[i+'|'+i[28:] \
             for i in glob("collective/zopeedit/locales/*/*/zopeedit.mo")]

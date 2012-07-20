@@ -47,6 +47,7 @@ def data_files():
     files.append((opj('collective','zopeedit', 'docs'), [f for
         f in glob.glob('docs/*') if os.path.isfile(f)]))
     files.append((opj('collective','zopeedit','docs'),['README.txt']))
+    files.append((opj('collective','zopeedit'),['collective/zopeedit/win32/ZopeEdit.ini']))
 
     return files
 
