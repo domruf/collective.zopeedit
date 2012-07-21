@@ -41,7 +41,7 @@ p["/usr/share/applications"]=["collective/zopeedit/posix/zopeedit.desktop|zopeed
 p["/usr/share/app-install/icons"]=["collective/zopeedit/posix/zopeedit.svg|zopeedit.svg"]
 p["/usr/share/pixmaps"]=["collective/zopeedit/posix/zopeedit.svg|zopeedit.svg"]
 p["/usr/share/man/man1"]=["collective/zopeedit/man/zopeedit.1.gz|zopeedit.1.gz"]
-p["/usr/share/mime/application"]=["collective/zopeedit/posix/x-zope-edit-zem.xml|x-zope-edit-zem.xml"]
+p["/usr/share/mime/package"]=["collective/zopeedit/posix/x-zope-edit-zem.xml|x-zope-edit-zem.xml"]
 p["/usr/lib/python2.6/dist-packages"]=["collective/zopeedit/posix/collective.zopeedit.pth|collective.zopeedit.pth"]
 
 p["/usr/lib/python2.6/dist-packages/collective.zopeedit/collective"]=["collective/__init__.py|__init__.py"]
