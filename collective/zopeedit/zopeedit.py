@@ -1564,6 +1564,56 @@ class ExternalEditor:
                                             False, auth_header)
                 if authorization is not None:
                     h.putheader("Authorization", authorization)
+            if auth_header.lower().startswith('ntlm'):
+                from sspi import ClientAuth
+                from base64 import encodestring, decodestring
+                ca = ClientAuth("NTLM", auth_info=None)
+                auth_scheme = ca.pkg_info['Name']
+                data = None
+                while 1:
+                    err, out_buf = ca.authorize(data)
+                    data = out_buf[0].Buffer
+                    auth = encodestring(data).replace("\012", "")
+
+                    h.putheader('Authorization', auth_scheme + ' ' + auth)
+
+                    h.endheaders()
+                    h.send(body)
+                    
+                    response = h.getresponse()
+                    if err==0:
+                        logger.debug("zopeRequest: response: %r" % response.status)
+                        return response
+                    else:
+                        if response.status != 401:
+                            print "Eeek - got response", response.status
+                            cl = response.msg.get("content-length")
+                            if cl:
+                                print repr(response.read(int(cl)))
+                            else:
+                                print "no content!"            
+                        assert response.status == 401, response.status            
+                    assert not response.will_close, "NTLM is per-connection - must not close"
+                    
+                    schemes = [s.strip() for s in response.msg.get("WWW-Authenticate", "").split(",")]
+                    for scheme in schemes:
+                        if scheme.startswith(auth_scheme):
+                            data = decodestring(scheme[len(auth_scheme)+1:])
+                            h.putrequest(method, url)
+                            h.putheader('User-Agent', 'Zope External Editor/%s' % \
+                                           __version__)
+                            for header, value in headers.items():
+                                h.putheader(header, value)
+                            h.putheader('Content-Length', str(len(body)))
+                            #cookie
+                            if self.metadata.get('cookie'):
+                                h.putheader("Cookie", self.metadata['cookie'])
+                            break
+                    else:
+                        print "Could not find scheme '%s' in schemes %r" % (auth_scheme, schemes)
+                        break
+                    response.read()
+                    
             #cookie
             if self.metadata.get('cookie'):
                 h.putheader("Cookie", self.metadata['cookie'])
